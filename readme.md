@@ -1,114 +1,76 @@
-🚀 EKS 기반 GitOps 애플리케이션 배포 구성 (Argo CD)
+# 🐾 Petclinic 애플리케이션 with GitAction CI
 
-📌 개요
+---
 
-이 레포는 AWS EKS 클러스터에서 Argo CD 기반 GitOps 방식으로 애플리케이션을 배포하도록 구성되어 있습니다.
+## 📌 개요
 
-Helm, Kustomize, Raw YAML을 조합하여 다양한 리소스를 배포하며, CI 파이프라인(GitHub Actions) 으로부터 전달받은 이미지 태그 변경 사항도 자동 반영됩니다.
+Spring 기반의 Petclinic 애플리케이션을 Docker로 컨테이너화하고,  
+GitHub Actions를 활용해 **ECR에 이미지 빌드 & 푸시**,  
+그리고 **Argo CD GitOps 기반 자동 배포**까지 연계한 CI 파이프라인을 구축
 
-🗂️ 폴더 구조
+---
 
-eks-petclinic/
-├── app/             # Petclinic 앱 배포 정의 (CI가 이미지 태그 변경)
-├── web/             # Web 프론트엔드 구성 (CI가 이미지 태그 변경)
-├── monitoring/      # Prometheus, Grafana, Node Exporter 등
-├── efk/             # Elasticsearch, Fluentd, Kibana 구성
-├── ingress/         # ALB Ingress 설정 및 Helm values
-├── hpa/             # HPA 정의 (CPU/Memory 기반 오토스케일링)
-├── autoscaler/      # Cluster Autoscaler 설정
-├── dashboard/       # Kubernetes Dashboard 배포
-├── apps/            # Argo CD에서 사용하는 Application 선언들
-├── role/            # IAM Role 및 정책 JSON
-└── whatap/          # Whatap K8s Agent 설정
+## 🧰 사용 기술
+- **Java 8 / Spring Framework**
+- **Maven**
+- **Docker / Dockerfile**
+- **AWS ECR**
+- **GitHub Actions**
+- **Kustomize**
+- **Argo CD (연동용)**
 
-🧰 사용 기술
+---
 
-Argo CD
+## 🔄 CI 파이프라인 흐름
 
-Kustomize
+| 단계 | 설명 |
+|------|------|
+| ✅ Checkout | 애플리케이션 코드 다운로드 |
+| ✅ Build | Maven으로 WAR 패키징 |
+| ✅ Dockerize | Docker 이미지 빌드 |
+| ✅ Push | AWS ECR로 이미지 푸시 |
+| ✅ GitOps 연동 | eks-petclinic 레포의 `kustomization.yaml` 자동 수정 및 커밋 |
 
-Helm
+> 🔁 이 과정을 통해 Argo CD는 Git 변경을 감지하고 자동 배포
 
-Raw Kubernetes YAML
+---
 
-GitHub Actions (GitOps 트리거 목적)
+## 🔐 GitHub Secrets 요구사항
 
-🧠 GitOps 구성 방식
+| 키                     | 설명                            |
+|------------------------|---------------------------------|
+| `AWS_ACCESS_KEY_ID`     | AWS 액세스 키 ID                |
+| `AWS_SECRET_ACCESS_KEY` | AWS 시크릿 키                   |
+| `MY_GITHUB_PAT`         | 개인 GitHub 토큰 (eks-petclinic 레포 수정용) |
 
-항목
+---
 
-설명
+## 📂 디렉토리 구조
 
-GitOps Tool
+```bash
+petclinic-app/
+├── src/                           # Java 소스 코드
+├── pom.xml                        # Maven 빌드 설정
+├── docker/
+│   └── app/
+│       ├── Dockerfile             # Tomcat 기반 WAR 배포용 Dockerfile
+│       └── petclinic.war          # 빌드시 복사됨
+├── .github/
+│   └── workflows/
+│       └── petclinic-ci.yaml      # CI/CD 워크플로우
+└── README.md
+```
 
-Argo CD
+---
 
-앱 정의 방식
 
-Raw YAML, Helm 혼합 사용
 
-앱 배포 경로
+## 📁 CI 자동 커밋 위치
 
-app/, web/, monitoring/ 등
+```bash
+argo-eks/app/kustomization.yaml
+```
 
-Argo CD 앱 정의
+> 위 파일의 `image` 필드가 자동 수정되고, Git commit 후 Argo CD가 변경을 감지하여 자동 배포가 트리거 됨
 
-apps/ 아래 .yaml 파일로 각각 분리
-
-이미지 자동 변경 위치
-
-app/kustomization.yaml, web/kustomization.yaml
-
-자동 커밋 소스
-
-petclinic-app CI 파이프라인
-
-Argo CD 설치 방식
-
-Helm Chart 기반 설치
-
-🔄 GitOps 동작 흐름
-
-Petclinic CI가 Docker 이미지를 빌드하고 ECR에 푸시함
-
-이 레포의 app/kustomization.yaml, web/kustomization.yaml의 newTag: 필드를 자동 수정
-
-GitHub Actions가 변경사항을 커밋 및 push
-
-Argo CD가 Git 변경 감지 → 앱 자동 재배포
-
-🔗 연동된 CI 레포
-
-petclinic-app
-
-CI에서 Docker 이미지 빌드 및 eks-petclinic 레포의 kustomization.yaml 자동 업데이트
-
-⚙️ 전체 기술 스택 요약
-
-분야
-
-도구
-
-CI/CD
-
-GitHub Actions → 이미지 빌드 및 GitOps 트리거
-
-CD
-
-Argo CD (ApplicationSet 기반)
-
-클러스터
-
-AWS EKS, ALB Ingress, HPA, Cluster Autoscaler
-
-모니터링
-
-Prometheus, Grafana
-
-로깅
-
-EFK (Elasticsearch, Fluentd, Kibana)
-
-기타 구성
-
-Whatap, Kubernetes Dashboard, IAM Roles
+---
