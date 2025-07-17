@@ -1,0 +1,67 @@
+# .github/workflows/petclinic-ci.yaml
+
+name: CI - Petclinic Build & GitOps Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**'
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REGISTRY: 560971842042.dkr.ecr.ap-northeast-2.amazonaws.com
+  ECR_REPOSITORY: wocgc
+  APP_IMAGE: wocgc
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Petclinic Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Maven Build & Test
+        run: ./mvnw clean package -PMySQL -DskipTests
+      
+      - name: Copy WAR for Docker
+        run: cp target/*.war docker/app/petclinic.war
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region $AWS_REGION | \
+          docker login --username AWS --password-stdin $ECR_REGISTRY
+
+      - name: Build & Push Docker Image
+        run: |
+          GIT_SHA=$(git rev-parse --short HEAD)
+          APP_TAG=${GIT_SHA}-app
+          docker build -t $ECR_REGISTRY/$APP_IMAGE:$APP_TAG ./docker/app
+          docker push $ECR_REGISTRY/$APP_IMAGE:$APP_TAG
+          echo "APP_TAG=$APP_TAG" >> $GITHUB_ENV
+
+      - name: Clone eks repo & Update kustomization.yaml
+        run: |
+          git clone https://${{ secrets.MY_GITHUB_PAT }}@github.com/Wocgc/argo-eks.git
+          cd argo-eks/app
+          kustomize edit set image $ECR_REGISTRY/$APP_IMAGE=$ECR_REGISTRY/$APP_IMAGE:$APP_TAG
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add kustomization.yaml
+          git commit -m "ci: update petclinic image tag to $IMAGE_TAG"
+          git push origin main
+
