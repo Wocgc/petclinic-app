@@ -30,7 +30,7 @@ GitHub Actions를 활용해 **ECR에 이미지 빌드 & 푸시**,
 | ✅ Build | Maven으로 WAR 패키징 |
 | ✅ Dockerize | Docker 이미지 빌드 |
 | ✅ Push | AWS ECR로 이미지 푸시 |
-| ✅ GitOps 연동 | argo-eks 리포의 `kustomization.yaml` 자동 수정 및 커밋 |
+| ✅ GitOps 연동 | eks-petclinic 레포의 `kustomization.yaml` 자동 수정 및 커밋 |
 
 > 🔁 이 과정을 통해 Argo CD는 Git 변경을 감지하고 자동 배포
 
