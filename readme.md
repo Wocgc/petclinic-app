@@ -42,7 +42,7 @@ GitHub Actions를 활용해 **ECR에 이미지 빌드 & 푸시**,
 |------------------------|---------------------------------|
 | `AWS_ACCESS_KEY_ID`     | AWS 액세스 키 ID                |
 | `AWS_SECRET_ACCESS_KEY` | AWS 시크릿 키                   |
-| `MY_GITHUB_PAT`         | 개인 GitHub 토큰 (argo-eks 레포 수정용) |
+| `MY_GITHUB_PAT`         | 개인 GitHub 토큰 (eks-petclinic 레포 수정용) |
 
 ---
 
