@@ -56,7 +56,7 @@ jobs:
 
       - name: Clone eks repo & Update kustomization.yaml
         run: |
-          git clone https://${{ secrets.MY_GITHUB_PAT }}@github.com/Wocgc/argo-eks.git
+          git clone https://${{ secrets.MY_GITHUB_PAT }}@github.com/Wocgc/eks-petclinic.git
           cd argo-eks/app
           kustomize edit set image $ECR_REGISTRY/$APP_IMAGE=$ECR_REGISTRY/$APP_IMAGE:$APP_TAG
           git config user.name "github-actions"
