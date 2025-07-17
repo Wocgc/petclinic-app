@@ -68,9 +68,10 @@ petclinic-app/
 ## 📁 CI 자동 커밋 위치
 
 ```bash
-argo-eks/app/kustomization.yaml
+eks-petclinic/app/kustomization.yaml
+eks-petclinic/web/kustomization.yaml
 ```
 
-> 위 파일의 `image` 필드가 자동 수정되고, Git commit 후 Argo CD가 변경을 감지하여 자동 배포가 트리거 됨
+> 위 파일들의 `image` 필드가 자동 수정되고, Git commit 후 Argo CD가 변경을 감지하여 자동 배포가 트리거 됨
 
 ---
